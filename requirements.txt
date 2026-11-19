@@ -1,2 +1,4 @@
-streamlit>=1.30
+streamlit>=1.40
 pandas>=2.0
+babel>=2.12
+tzdata
