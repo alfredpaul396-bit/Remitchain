@@ -1,5 +1,5 @@
 """
-RemitChain - Send money home for cents, not percent.
+Xtra - Use Xtra, save extra.
 NEOMA MSc Fintech & DeFi - Final Group Project
 
 Send money from any country, in any currency, to any country, in any currency.
@@ -22,7 +22,7 @@ How to run (keep world_data.py in the same folder):
     pip install -r requirements.txt
     streamlit run remitchain_app.py
 
-This is a demo: no real money moves. RemitChain's own fee levels are sample values.
+This is a demo: no real money moves. Xtra's own fee levels are sample values.
 """
 
 import hashlib
@@ -42,7 +42,7 @@ import streamlit as st
 from world_data import (BANK_FORMATS, COUNTRIES, CURRENCY_NAMES, DEFAULT_FORMAT, EXCHANGES,
                         IBAN_FORMAT, IBAN_LENGTHS, SANCTIONED)
 
-st.set_page_config(page_title="RemitChain", page_icon="💸", layout="wide")
+st.set_page_config(page_title="Xtra · Use Xtra, save extra", page_icon="💚", layout="wide")
 
 # ---------------------------------------------------------------------------
 # 1. Costs
@@ -56,10 +56,10 @@ COMPETITORS = {
 }
 WORLD_AVERAGE = 6.36  # global average cost, all providers (Q3 2025)
 
-# RemitChain's own costs (sample values for the demo)
-RC_SERVICE_FEE = 0.003   # 0.3% service fee
-RC_FX_MARGIN = 0.005     # 0.5% exchange-rate margin
-RC_NETWORK_FEE_USD = 0.05  # blockchain network fee
+# Xtra's own costs (sample values for the demo)
+XTRA_SERVICE_FEE = 0.003   # 0.3% service fee
+XTRA_FX_MARGIN = 0.005     # 0.5% exchange-rate margin
+XTRA_NETWORK_FEE_USD = 0.05  # blockchain network fee
 
 PURPOSES = ["Family support", "Education", "Medical expenses", "Savings",
             "Gift", "Rent or bills", "Business payment", "Other"]
@@ -69,7 +69,7 @@ PURPOSES = ["Family support", "Education", "Medical expenses", "Savings",
 # 2. Live exchange rates
 # ---------------------------------------------------------------------------
 def get_json(url):
-    request = urllib.request.Request(url, headers={"User-Agent": "RemitChain-student-app"})
+    request = urllib.request.Request(url, headers={"User-Agent": "Xtra-student-app"})
     with urllib.request.urlopen(request, timeout=10) as response:
         return json.loads(response.read().decode())
 
@@ -133,10 +133,10 @@ def risk_report(history):
 # ---------------------------------------------------------------------------
 # 3. Cost calculations
 # ---------------------------------------------------------------------------
-def remitchain_quote(amount, mid, usd_to_from):
-    """Fee (in sender currency) and amount received with RemitChain."""
-    fee = amount * RC_SERVICE_FEE + RC_NETWORK_FEE_USD * usd_to_from
-    received = max(amount - fee, 0) * mid * (1 - RC_FX_MARGIN)
+def xtra_quote(amount, mid, usd_to_from):
+    """Fee (in sender currency) and amount received with Xtra."""
+    fee = amount * XTRA_SERVICE_FEE + XTRA_NETWORK_FEE_USD * usd_to_from
+    received = max(amount - fee, 0) * mid * (1 - XTRA_FX_MARGIN)
     return fee, received
 
 
@@ -338,9 +338,9 @@ def ledger_is_intact(ledger):
 # ---------------------------------------------------------------------------
 # 7. Load live rates - the app only works with real data
 # ---------------------------------------------------------------------------
-st.title("💸 RemitChain")
-st.write("**Send money home for cents, not percent.** From any country, in any currency, "
-         "to any country, in any currency.")
+st.title("💚 Xtra")
+st.write("**Use Xtra, save extra.** Send money from any country, in any currency, "
+         "to any country, in any currency, and your family gets extra every time.")
 
 try:
     RATES, UPDATED, NEXT_UPDATE = live_rates()
@@ -396,8 +396,8 @@ with tab1:
     st.header("How much will your family receive?")
     amount = st.number_input(f"Amount to send ({FROM_CUR})", min_value=1.0, value=300.0, step=10.0)
 
-    fee, rc_received = remitchain_quote(amount, MID, USD_TO_FROM)
-    rc_cost = (1 - rc_received / (amount * MID)) * 100
+    fee, xtra_received = xtra_quote(amount, MID, USD_TO_FROM)
+    xtra_cost = (1 - xtra_received / (amount * MID)) * 100
     avg_received = competitor_received(amount, MID, WORLD_AVERAGE)
 
     rows = []
@@ -405,16 +405,16 @@ with tab1:
         received = competitor_received(amount, MID, c["cost"])
         rows.append({"Option": f"{name} (average)", "Total cost": f"{c['cost']:.2f}%",
                      f"Family receives ({TO_CUR})": round(received, 2),
-                     f"Extra with RemitChain ({TO_CUR})": round(rc_received - received, 2),
+                     f"Your Xtra ({TO_CUR})": round(xtra_received - received, 2),
                      "Delivery time": c["time"]})
-    rows.append({"Option": "RemitChain", "Total cost": f"{rc_cost:.2f}%",
-                 f"Family receives ({TO_CUR})": round(rc_received, 2),
-                 f"Extra with RemitChain ({TO_CUR})": 0.0,
+    rows.append({"Option": "Xtra", "Total cost": f"{xtra_cost:.2f}%",
+                 f"Family receives ({TO_CUR})": round(xtra_received, 2),
+                 f"Your Xtra ({TO_CUR})": 0.0,
                  "Delivery time": "Under 1 minute"})
     table = pd.DataFrame(rows)
 
-    extra = rc_received - avg_received
-    st.success(f"💚 With RemitChain your family receives **{money(extra, TO_CUR)} more** than with "
+    extra = xtra_received - avg_received
+    st.success(f"💚 With Xtra your family gets **{money(extra, TO_CUR)} extra** compared with "
                f"the average provider ({WORLD_AVERAGE}% cost). That is "
                f"**{money(extra / MID, FROM_CUR)} saved** on this one transfer.")
 
@@ -444,7 +444,7 @@ with tab1:
     st.write(("🟢 The global **forex market is open** (it trades 24 hours a day, Monday to Friday)."
               if forex_market_open() else
               "🔴 The global **forex market is closed** for the weekend (it reopens Sunday ~22:00 UTC). "
-              "RemitChain still delivers, at the latest live rate."))
+              "Xtra still delivers, at the latest live rate."))
     st.caption("Average costs: World Bank, Remittance Prices Worldwide (cost of sending $200: banks, "
                "digital-only apps and global average Q3 2025; money transfer companies Q1 2025). "
                "Stock exchange hours are main sessions only; lunch breaks and holidays not included.")
@@ -513,7 +513,7 @@ with tab2:
                 for e in errors:
                     st.error(e)
             else:
-                fee, received = remitchain_quote(send_amount, MID, USD_TO_FROM)
+                fee, received = xtra_quote(send_amount, MID, USD_TO_FROM)
                 extra = received - competitor_received(send_amount, MID, WORLD_AVERAGE)
                 saved_from = extra / MID
                 ledger = st.session_state.ledger
@@ -521,7 +521,7 @@ with tab2:
                 details = "; ".join(f"{f}: {v if f in ('Account type', 'Bank name', 'Wallet provider') else mask(v)}"
                                     for f, v in values.items())
                 record = {
-                    "Tx ID": "RC-" + hashlib.sha256(f"{now_utc}{r_name}".encode()).hexdigest()[:8].upper(),
+                    "Tx ID": "XT-" + hashlib.sha256(f"{now_utc}{r_name}".encode()).hexdigest()[:8].upper(),
                     "Date (UTC)": now_utc.strftime("%Y-%m-%d %H:%M:%S"),
                     "Sender local time": f"{local_time(FROM).strftime('%d/%m %H:%M')} ({COUNTRIES[FROM]['name']})",
                     "Recipient local time": f"{local_time(TO).strftime('%d/%m %H:%M')} ({COUNTRIES[TO]['name']})",
@@ -529,7 +529,7 @@ with tab2:
                     "From": country_label(FROM),
                     "Amount sent": money(send_amount, FROM_CUR),
                     "Fee": money(fee, FROM_CUR),
-                    "Rate": f"1 {FROM_CUR} = {MID * (1 - RC_FX_MARGIN):,.4f} {TO_CUR}",
+                    "Rate": f"1 {FROM_CUR} = {MID * (1 - XTRA_FX_MARGIN):,.4f} {TO_CUR}",
                     "Recipient": r_name.strip(),
                     "Recipient address": r_addr.strip(),
                     "To": country_label(TO),
@@ -537,7 +537,7 @@ with tab2:
                     "Account details": details,
                     "Purpose": purpose,
                     "Amount received": money(received, TO_CUR),
-                    "Extra vs average provider": money(extra, TO_CUR),
+                    "Your Xtra": money(extra, TO_CUR),
                     "Saved": money(saved_from, FROM_CUR),
                     "Status": "✅ Delivered",
                     "_saved_eur": round(saved_from * cross_rate(RATES, FROM_CUR, "EUR"), 2),
@@ -552,7 +552,7 @@ with tab2:
                 st.success(f"✅ Done! **{r_name}** receives **{record['Amount received']}** in under a "
                            f"minute. Transaction **{record['Tx ID']}** is saved in the ledger (tab 3).")
                 st.info(f"💚 Your family received **{money(extra, TO_CUR)} extra** compared with the "
-                        f"average provider. Total saved with RemitChain so far: "
+                        f"average provider. Your total Xtra so far: "
                         f"**{money(total_saved, FROM_CUR)}**.")
 
 # ---------------------------------------------------------------------------
@@ -567,13 +567,13 @@ with tab3:
         to_from = cross_rate(RATES, "EUR", FROM_CUR)
         total_saved = sum(r["_saved_eur"] for r in ledger) * to_from
         total_sent = sum(r["_sent_eur"] for r in ledger) * to_from
-        st.success(f"🎉 Since you started using RemitChain, your families have received "
+        st.success(f"🎉 Your total Xtra: since you joined, your families have received "
                    f"**{money(total_saved, FROM_CUR)} more** than with the average provider.")
 
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("Transfers", len(ledger))
         m2.metric("Total sent", money(total_sent, FROM_CUR))
-        m3.metric("Total saved", money(total_saved, FROM_CUR))
+        m3.metric("Total Xtra", money(total_saved, FROM_CUR))
         intact = ledger_is_intact(ledger)
         m4.metric("Ledger", "✅ Intact" if intact else "❌ Tampered")
 
@@ -586,7 +586,7 @@ with tab3:
 
         visible = [{k: v for k, v in r.items() if not k.startswith("_")} for r in ledger]
         summary_cols = ["Tx ID", "Date (UTC)", "Sender", "Recipient", "To", "Amount sent",
-                        "Amount received", "Extra vs average provider", "Status", "Fingerprint"]
+                        "Amount received", "Your Xtra", "Status", "Fingerprint"]
         st.dataframe(pd.DataFrame(visible)[summary_cols], hide_index=True, use_container_width=True)
 
         st.subheader("Receipts")
@@ -604,7 +604,7 @@ with tab3:
             ledger[0]["Amount sent"] = money(999999, FROM_CUR)
             st.rerun()
         c2.download_button("⬇️ Download ledger (CSV)", pd.DataFrame(visible).to_csv(index=False),
-                           "remitchain_ledger.csv", "text/csv")
+                           "xtra_ledger.csv", "text/csv")
         if c3.button("Reset the demo"):
             st.session_state.clear()
             st.rerun()
@@ -657,13 +657,13 @@ with tab4:
             st.write("Possible loss from a rate move while the money is travelling "
                      "(a bad case that happens about 1 time in 20):")
             rows = []
-            for name, c in list(COMPETITORS.items()) + [("RemitChain", {"time": "Under 1 minute", "days": 0})]:
+            for name, c in list(COMPETITORS.items()) + [("Xtra", {"time": "Under 1 minute", "days": 0})]:
                 loss = 1.645 * report["daily_vol"] * math.sqrt(c["days"]) * 100
                 rows.append({"Option": name, "Money travelling for": c["time"],
                              "Possible rate loss": f"{loss:.2f}%",
                              f"In {FROM_CUR}": money(risk_amount * loss / 100, FROM_CUR)})
             st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
-            st.info("RemitChain locks in the rate and delivers in under a minute, so your family "
+            st.info("Xtra locks in the rate and delivers in under a minute, so your family "
                     "is not exposed to days of exchange-rate moves.")
 
             with st.expander("How we calculate this"):
@@ -678,4 +678,4 @@ with tab4:
 
 st.divider()
 st.caption("Demo only: no real money is sent and all bank details shown are fictional. "
-           "Exchange rates are live; RemitChain's own fees are sample values.")
+           "Exchange rates are live; Xtra's own fees are sample values.")
