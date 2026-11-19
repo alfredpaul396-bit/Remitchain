@@ -1,5 +1,5 @@
 """
-World data for RemitChain: every country with its currency and time zone,
+World data for Xtra: every country with its currency and time zone,
 plus stock exchange hours, bank-detail formats and IBAN lengths.
 Country names, currencies and time zones come from the Unicode CLDR data
 set, through the Babel library.
