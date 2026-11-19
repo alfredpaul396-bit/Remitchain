@@ -35,6 +35,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
+import altair as alt
 import pandas as pd
 import streamlit as st
 
@@ -426,8 +427,8 @@ with tab1:
         with col:
             now = local_time(code)
             st.markdown(f"**{who}: {country_label(code)}**")
-            st.metric("Local time", now.strftime("%H:%M"),
-                      f"{now.strftime('%A %d %B')} · {utc_offset(now)}", delta_color="off")
+            st.metric("Local time", now.strftime("%H:%M"))
+            st.caption(f"{now.strftime('%A %d %B')} · {utc_offset(now)}")
             ex = exchange_status(code)
             if ex:
                 name, is_open, hours = ex
@@ -631,7 +632,15 @@ with tab4:
         if history is not None:
             report = risk_report(history)
             st.subheader(f"1 {FROM_CUR} in {TO_CUR}, last 90 days")
-            st.line_chart(history)
+            chart_data = history.rename_axis("Date").reset_index(name="Rate")
+            st.altair_chart(
+                alt.Chart(chart_data).mark_line().encode(
+                    x=alt.X("Date:T", title=None),
+                    y=alt.Y("Rate:Q", title=f"1 {FROM_CUR} in {TO_CUR}", scale=alt.Scale(zero=False)),
+                    tooltip=["Date:T", alt.Tooltip("Rate:Q", format=",.4f")],
+                ),
+                use_container_width=True,
+            )
 
             k1, k2, k3 = st.columns(3)
             k1.metric("Risk level", report["level"])
