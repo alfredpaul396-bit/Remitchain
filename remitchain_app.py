@@ -476,7 +476,7 @@ with tab2:
         with st.form("send_form"):
             st.markdown("**1. You (sender)**")
             s1, s2 = st.columns(2)
-            sender_name = s1.text_input("Your full name", "Alfred Paul")
+            sender_name = s1.text_input("Your full name", "Sample Sender")
             s2.text_input("Sending from", country_label(FROM), disabled=True)
 
             st.markdown("**2. Recipient**")
